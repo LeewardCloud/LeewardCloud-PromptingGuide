@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Prompting Techniques Guide - LeewardCloud.io</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Visualization & Content Choices:
+        - Report Info: Title Slide -> Goal: Inform -> Presentation: Main SPA Title (H1) -> Interaction: Static -> Justification: Sets overall context.
+        - Report Info: Introduction Slide -> Goal: Inform -> Presentation: Introductory text block (P elements) -> Interaction: Static -> Justification: Provides initial context for the SPA.
+        - Report Info: Each Prompting Technique -> Goal: Inform, Organize -> Presentation: Structured HTML sections (H2 for technique name, H3 for sub-sections) with P, UL, PRE/CODE for content. -> Interaction: Content displayed upon navigation click. -> Justification: Best way to present textual definitions, explanations, and examples. -> Library/Method: HTML, Tailwind, Vanilla JS.
+        - Report Info: Conclusion Slide -> Goal: Summarize -> Presentation: Concluding text block. -> Interaction: Static. -> Justification: Summarizes key takeaways.
+        - Report Info: Q&A Slide -> Goal: Inform -> Presentation: Simple text block. -> Interaction: Static. -> Justification: Standard presentation element.
+        - CONFIRMATION: NO SVG/Mermaid used. No charts are needed as data is qualitative/textual.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FCE5FB; /* Very Light Pink/Off-white */
+            color: #4A5568; /* Slate 700 */
+        }
+        .content-fade-enter {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .content-fade-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 300ms ease-out, transform 300ms ease-out;
+        }
+        .nav-item.active {
+            background-color: #F3509E; /* Bright Pink */
+            color: #FFFFFF;
+            font-weight: 600;
+        }
+        .nav-item:hover {
+            background-color: #F5A8D5; /* Medium Pink */
+            color: #FFFFFF; 
+        }
+        .header-bg { background-color: #55DCE8; /* Cyan/Teal */ }
+        .footer-bg { background-color: #55DCE8; /* Cyan/Teal */ }
+        .sidebar-bg { background-color: #F9CDE7; /* Light Pink */ }
+        .content-display-bg { background-color: #FFFFFF; /* White for content readability */ }
+        .heading-text-accent { color: #F3509E; /* Bright Pink */ }
+        .subheading-text-accent { color: #55DCE8; /* Cyan/Teal */ }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content.sidebar-open {
+                margin-left: 0;
+            }
+            .menu-button {
+                display: block;
+            }
+        }
+        @media (min-width: 769px) {
+            .menu-button {
+                display: none;
+            }
+            .sidebar {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="header-bg text-white p-4 shadow-md fixed w-full z-20">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold">Mastering Prompts: An Interactive Guide</h1>
+                <p class="text-sm">Powered by LeewardCloud.io</p>
+            </div>
+            <button class="menu-button md:hidden p-2 rounded-md text-white hover:bg-opacity-75 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" id="menuButton">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-3.75 5.25h16.5" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 pt-24 md:pt-20"> 
+        <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 sidebar-bg text-slate-700 w-64 p-4 space-y-2 overflow-y-auto shadow-lg z-10 pt-28 md:pt-24 transition-transform duration-300 ease-in-out">
+            <nav id="navigation" class="space-y-1">
+            </nav>
+        </aside>
+
+        <main id="mainContent" class="main-content flex-1 p-6 md:p-10 md:ml-64 transition-margin duration-300 ease-in-out">
+            <div id="contentDisplay" class="content-display-bg p-6 md:p-8 rounded-lg shadow-xl">
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer-bg text-white text-center p-4 mt-auto">
+        <p>&copy; 2025 LeewardCloud.io Interactive Prompting Guide. Explore and learn!</p>
+    </footer>
+
+    <script>
+        const techniquesData = [
+            {
+                id: "introduction",
+                title: "Welcome: Why Prompting Matters",
+                content: `
+                    <p class="mb-4 text-lg">Prompts are the instructions we give to Large Language Models (LLMs).</p>
+                    <p class="mb-4">The quality of the prompt significantly impacts the quality of the LLM's output. Effective prompting unlocks the full potential of LLMs, enabling them to perform complex tasks, generate creative content, and provide accurate information.</p>
+                    <p class="mb-4">This guide, brought to you by LeewardCloud.io, explores various techniques to refine your prompts. Navigate using the menu to learn about each technique.</p>
+                    <h3 class="text-xl font-semibold heading-text-accent mt-6 mb-3">Exploring Key Prompting Techniques</h3>
+                    <p>Dive into specific methods to understand how to better communicate with LLMs and achieve your desired outcomes.</p>
+                `
+            },
+            {
+                id: "zero_shot",
+                title: "Zero-shot Prompting",
+                slideTitle: "Zero-shot Prompting: The Direct Approach",
+                definition: "A direct instruction or question is given to the LLM without any additional examples or context.",
+                mechanism: "The model relies entirely on its pre-trained knowledge to understand the request and generate a relevant response.",
+                example: "Translate 'hello world' into French.",
+                useWhen: "For simple tasks where the LLM is likely to understand the request without further guidance.",
+                pros: "Quick and easy.",
+                cons: "May not work well for complex or nuanced tasks."
+            },
+            {
+                id: "few_shot",
+                title: "Few-shot Prompting",
+                slideTitle: "Few-shot Prompting: Learning by Example",
+                definition: "One or more examples (shots) of the desired input-output format are included in the prompt.",
+                mechanism: "These examples guide the model towards a specific style, format, or type of response.",
+                example: "Prompt:\nEnglish: sea otter\nFrench: loutre de mer\n\nEnglish: peppermint\nFrench: menthe poivrée\n\nEnglish: cheese\nFrench:\n\nExpected Output: fromage",
+                useWhen: "You need a specific output format, style, or when the task is more nuanced.",
+                pros: "Improves accuracy and helps the model understand complex requests.",
+                cons: "Requires crafting good examples; can make prompts longer."
+            },
+            {
+                id: "chain_of_thought",
+                title: "Chain-of-thought (CoT)",
+                slideTitle: "Chain-of-thought (CoT) Prompting: Thinking Step-by-Step",
+                definition: "Instructs the LLM to break down complex tasks into smaller, intermediate reasoning steps before arriving at the final answer.",
+                mechanism: "By showing its \"work,\" the LLM can improve its reasoning and logic, especially for arithmetic, commonsense, and symbolic reasoning tasks.",
+                example: "Q: Roger has 5 tennis balls. He buys 2 more cans of tennis balls. Each can has 3 tennis balls. How many tennis balls does he have now?\nA: Roger starts with 5 balls. He buys 2 cans of 3 tennis balls each. That is 2 * 3 = 6 balls. So he has 5 + 6 = 11 balls. The answer is 11.\n\n(Then ask a new, similar question.)",
+                useWhen: "For complex problems requiring multi-step reasoning.",
+                pros: "Significantly improves reasoning abilities and provides transparency into the model's process.",
+                cons: "Can increase output length."
+            },
+            {
+                id: "tree_of_thoughts",
+                title: "Tree of Thoughts (ToT)",
+                slideTitle: "Tree of Thoughts (ToT): Exploring Multiple Paths",
+                definition: "Allows the LLM to explore multiple reasoning paths or \"thoughts\" in parallel.",
+                mechanism: "The model generates several different intermediate thought processes for a problem. It can then evaluate these paths and decide which one to pursue or how to combine insights from different paths.",
+                analogy: "Like a human brainstorming different ways to solve a problem before picking the best one.",
+                useWhen: "For complex problems where multiple approaches or perspectives could lead to a solution, or where initial reasoning paths might be dead ends.",
+                pros: "Enables more robust problem-solving and consideration of diverse solutions.",
+                cons: "Computationally more intensive; can be complex to implement."
+            },
+            {
+                id: "self_consistency",
+                title: "Self-Consistency",
+                slideTitle: "Self-Consistency Prompting: The Wisdom of Crowds",
+                definition: "Generates multiple reasoning paths (often using chain-of-thought prompting) for the same problem and then selects the most consistent or frequently occurring answer from these different paths.",
+                mechanism: "Instead of just one CoT, sample several. If multiple reasoning paths lead to the same answer, that answer is more likely to be correct.",
+                example: "Ask the same math problem multiple times with CoT. If 7 out of 10 responses give the answer \"11\", and 3 give \"12\", \"11\" is chosen.",
+                useWhen: "You need to improve the accuracy and reliability of answers for tasks that benefit from CoT.",
+                pros: "Boosts performance on tasks requiring reasoning.",
+                cons: "Requires generating multiple outputs, increasing computational cost."
+            },
+            {
+                id: "prompt_chaining",
+                title: "Prompt Chaining",
+                slideTitle: "Prompt Chaining: Building Block by Block",
+                definition: "Uses a sequence of prompts, where the output of one prompt becomes the input (or part of the input) for the next prompt.",
+                mechanism: "Breaks down a large, complex task into smaller, manageable sub-tasks. Each prompt guides the LLM through one step of the overall process.",
+                example: "1. Prompt 1: \"Summarize this article: [article text]\" -> Output 1: Summary\n2. Prompt 2: \"Based on this summary: [Output 1], what are the key takeaways?\" -> Output 2: Key Takeaways\n3. Prompt 3: \"Write a tweet about these key takeaways: [Output 2]\"",
+                useWhen: "For multi-step workflows or when generating complex, structured content.",
+                pros: "Manages complexity; allows for iterative refinement.",
+                cons: "Requires careful planning of the sequence and handling of intermediate outputs."
+            },
+            {
+                id: "system_prompting",
+                title: "System Prompting",
+                slideTitle: "System Prompting: Setting the Stage",
+                definition: "A high-level instruction that sets the overall context, purpose, constraints, or persona for the LLM's behavior across an entire conversation or session.",
+                mechanism: "It's like giving the LLM a job description or a set of guiding principles before it starts working on specific tasks (user prompts).",
+                example: "You are a helpful assistant that translates complex scientific papers into plain English for a general audience. Maintain a friendly and informative tone.",
+                useWhen: "You need the LLM to maintain a consistent style, role, or follow specific rules throughout an interaction.",
+                pros: "Provides a stable context for the LLM's responses.",
+                cons: "The influence of system prompts can vary between models."
+            },
+            {
+                id: "role_prompting",
+                title: "Role Prompting",
+                slideTitle: "Role Prompting: Adopting a Persona",
+                definition: "Assigns a specific role or persona for the LLM to adopt, influencing its response style, tone, vocabulary, and content.",
+                mechanism: "The prompt explicitly tells the LLM who it should \"be.\" This is often part of a system prompt but can be used in user prompts too.",
+                example: "- \"You are a pirate. Explain blockchain technology.\"\n- \"Act as a travel guide for Paris. Suggest a 3-day itinerary.\"",
+                useWhen: "You want responses tailored to a specific character, profession, or communication style.",
+                pros: "Can make interactions more engaging and generate highly specialized content.",
+                cons: "The LLM might over-act or misinterpret the role if not clearly defined."
+            },
+            {
+                id: "contextual_prompting",
+                title: "Contextual Prompting",
+                slideTitle: "Contextual Prompting: Providing Background",
+                definition: "Provides additional background information, data, documents, or specific details relevant to the task directly within the prompt.",
+                mechanism: "This \"context\" helps the LLM understand the specific situation, constraints, or knowledge base it should use, leading to more accurate and relevant responses.",
+                example: "Given the following customer feedback: [feedback text], and our company's return policy: [policy text], how should I respond to this customer's complaint?",
+                useWhen: "The task requires knowledge of specific information not in the LLM's general training data, or when you need to ground the LLM's response in particular facts.",
+                pros: "Greatly improves relevance and accuracy for specific tasks.",
+                cons: "Can make prompts very long; effectiveness depends on the LLM's ability to utilize the provided context."
+            },
+            {
+                id: "react_prompting",
+                title: "ReAct Prompting",
+                slideTitle: "ReAct Prompting: Thinking and Doing",
+                definition: "Enables LLMs to synergize Reasoning and Acting. The LLM generates both reasoning traces and task-specific actions in an interleaved manner.",
+                mechanism: "1. Reason: The LLM thinks about what it needs to do.\n2. Act: It decides to use an external tool (e.g., perform a web search, query a database, use a calculator).\n3. Observe: It gets the result from the tool.\n4. It then reasons again based on the new information and repeats the cycle until the task is solved.",
+                useWhen: "For complex tasks requiring up-to-date information or capabilities beyond the LLM's internal knowledge (e.g., current weather, specific calculations, information from private documents).",
+                pros: "Allows LLMs to overcome knowledge cutoffs and perform actions in the real world (via APIs).",
+                cons: "Requires integration with external tools; can be complex to set up."
+            },
+            {
+                id: "negative_prompting",
+                title: "Negative Prompting",
+                slideTitle: "Negative Prompting: What NOT To Do",
+                definition: "Specifies what the model should not generate, include, or do. It's about guiding the model away from undesired outputs.",
+                mechanism: "You explicitly list exclusions or constraints.",
+                example: "- \"Write a story about a friendly dragon. Do not include any violence or fighting.\"\n- \"Generate a list of marketing slogans. Avoid using clichés or overly aggressive language.\"",
+                useWhen: "You need to control the output by preventing specific themes, words, styles, or elements.",
+                pros: "Helps refine output and align it more closely with desired constraints.",
+                cons: "The model might still sometimes include negated elements, or interpret the negation in unexpected ways."
+            },
+            {
+                id: "meta_prompting",
+                title: "Meta Prompting",
+                slideTitle: "Meta Prompting: Prompting the Prompter",
+                definition: "A technique where the prompt is designed to instruct the model on how to construct its own prompts for a given task or how to improve a given prompt.",
+                mechanism: "You're essentially asking the LLM to act as a prompt engineer. It analyzes a task or an initial prompt and suggests better ways to phrase it or breaks it down into more effective sub-prompts.",
+                example: "- \"Here's a task: 'Write a blog post about sustainable gardening.' How can I write a better prompt to get a comprehensive and engaging blog post from an LLM? Suggest 3 improved prompts.\"\n- \"Critique this prompt and suggest improvements: [User's original prompt]\"",
+                useWhen: "You want to leverage the LLM's understanding of language to help you create better prompts, or to make the LLM more autonomous in its problem-solving approach.",
+                pros: "Can lead to more flexible, adaptable, and effective prompting strategies; empowers users.",
+                cons: "The quality of meta-prompts depends on the LLM's capabilities in this area."
+            },
+            {
+                id: "conclusion",
+                title: "Conclusion: The Art & Science",
+                slideTitle: "Conclusion: The Art and Science of Prompting",
+                content: `
+                    <ul class="list-disc pl-5 space-y-2 mb-4">
+                        <li>We've explored a range of prompting techniques, from simple direct instructions to complex multi-step reasoning and tool use.</li>
+                        <li>There's no silver bullet; the best technique depends on the task, the LLM, and the desired outcome.</li>
+                        <li>Experimentation is key! Don't be afraid to try different methods and combine techniques.</li>
+                        <li>The field of prompting is evolving rapidly. Continuous learning is beneficial.</li>
+                    </ul>
+                    <p class="font-semibold text-lg heading-text-accent">Goal: Clear, concise, and context-rich prompts lead to better LLM performance.</p>
+                `
+            },
+             {
+                id: "q_and_a",
+                title: "Further Questions?",
+                slideTitle: "Questions?",
+                content: `
+                    <p class="mb-4">This guide provides an overview of common prompting techniques.</p>
+                    <p class="mb-4">As you practice, you'll develop a better intuition for which techniques to apply in various situations.</p>
+                    <p>Consider these questions for further exploration:</p>
+                    <ul class="list-disc pl-5 space-y-2 mt-2">
+                        <li>How can these techniques be combined for more complex tasks?</li>
+                        <li>What are the ethical implications of using certain prompting strategies?</li>
+                        <li>How do different LLMs respond to the same prompting technique?</li>
+                        <li>Where can I find more advanced or newly emerging prompting techniques?</li>
+                    </ul>
+                `
+            }
+        ];
+
+        const navigation = document.getElementById('navigation');
+        const contentDisplay = document.getElementById('contentDisplay');
+        const menuButton = document.getElementById('menuButton');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+
+        let activeNavItem = null;
+
+        function formatText(text) {
+            if (!text) return '';
+            return text.replace(/\n/g, '<br>');
+        }
+        
+        function formatExample(text) {
+            if (!text) return '';
+            const escapedHtml = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            return `<pre class="bg-pink-50 p-3 rounded-md text-sm whitespace-pre-wrap border border-pink-200">${escapedHtml}</pre>`;
+        }
+
+
+        function displayContent(techniqueId) {
+            const technique = techniquesData.find(t => t.id === techniqueId);
+            if (!technique) {
+                contentDisplay.innerHTML = '<p>Content not found.</p>';
+                return;
+            }
+
+            contentDisplay.classList.remove('content-fade-enter-active');
+            contentDisplay.classList.add('content-fade-enter');
+            
+            setTimeout(() => {
+                let html = `<h2 class="text-3xl font-bold heading-text-accent mb-6">${technique.slideTitle || technique.title}</h2>`;
+
+                if (technique.content) {
+                    html += `<div class="prose max-w-none text-slate-700">${technique.content}</div>`;
+                } else {
+                    if(technique.definition) html += `<div class="mb-6"><h3 class="text-xl font-semibold subheading-text-accent mb-2">Definition</h3><p>${formatText(technique.definition)}</p></div>`;
+                    if(technique.mechanism) html += `<div class="mb-6"><h3 class="text-xl font-semibold subheading-text-accent mb-2">Mechanism</h3><p>${formatText(technique.mechanism)}</p></div>`;
+                    if(technique.analogy) html += `<div class="mb-6"><h3 class="text-xl font-semibold subheading-text-accent mb-2">Analogy</h3><p>${formatText(technique.analogy)}</p></div>`;
+                    if(technique.example) html += `<div class="mb-6"><h3 class="text-xl font-semibold subheading-text-accent mb-2">Example</h3>${formatExample(technique.example)}</div>`;
+                    if(technique.useWhen) html += `<div class="mb-6"><h3 class="text-xl font-semibold subheading-text-accent mb-2">Use When</h3><p>${formatText(technique.useWhen)}</p></div>`;
+                    
+                    if(technique.pros || technique.cons) {
+                        html += `<div class="grid md:grid-cols-2 gap-6 mb-6">`;
+                        if(technique.pros) html += `<div><h3 class="text-xl font-semibold text-green-500 mb-2">Pros 👍</h3><p>${formatText(technique.pros)}</p></div>`;
+                        if(technique.cons) html += `<div><h3 class="text-xl font-semibold text-red-500 mb-2">Cons 👎</h3><p>${formatText(technique.cons)}</p></div>`;
+                        html += `</div>`;
+                    }
+                }
+                contentDisplay.innerHTML = html;
+                contentDisplay.classList.add('content-fade-enter-active');
+            }, 50);
+
+
+            if (activeNavItem) {
+                activeNavItem.classList.remove('active');
+            }
+            const currentNavItem = document.querySelector(`.nav-item[data-id="${techniqueId}"]`);
+            if (currentNavItem) {
+                currentNavItem.classList.add('active');
+                activeNavItem = currentNavItem;
+            }
+            
+            if (window.innerWidth < 768 && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        }
+
+        techniquesData.forEach(technique => {
+            const link = document.createElement('a');
+            link.href = '#';
+            link.textContent = technique.title;
+            link.classList.add('nav-item', 'block', 'p-3', 'rounded-md', 'transition-colors', 'duration-150', 'ease-in-out');
+            link.dataset.id = technique.id;
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                displayContent(technique.id);
+            });
+            navigation.appendChild(link);
+        });
+        
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth < 768 && !sidebar.contains(event.target) && !menuButton.contains(event.target) && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        displayContent('introduction');
+    </script>
+</body>
+</html>
